@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
+import authRoutes from "./routes/auth";
 
-// Load the enviorment variables
-dotenv.config({ path: ".env.local" });
+// Load environment variables
+dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req: Request, res: Response) => {
     res.json({ status: "ok", message: "Auth server is running!" });
 });
+
+// 🔐 Auth routes (mounted at /api/auth)
+app.use("/api/auth", authRoutes);
 
 // Start server
 app.listen(PORT, () => {

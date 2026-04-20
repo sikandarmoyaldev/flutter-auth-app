@@ -1,7 +1,10 @@
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import dotenv from "dotenv";
+import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
 import * as schema from "../schema/index";
+
+// Load environment variables
+dotenv.config();
 
 if (!process.env.DATABASE_URL) {
     throw new Error("❌ DATABASE_URL is missing in .env");
@@ -15,4 +18,4 @@ const client = postgres(process.env.DATABASE_URL, {
 });
 
 // Export typed Drizzle instance with your schema
-export const db: PostgresJsDatabase = drizzle(client, { schema });
+export const db = drizzle(client, { schema });
