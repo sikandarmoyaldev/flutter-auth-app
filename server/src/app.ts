@@ -1,4 +1,8 @@
-import express, { Request, Response, Express } from "express";
+import dotenv from "dotenv";
+import express, { Express, Request, Response } from "express";
+
+// Load the enviorment variables
+dotenv.config({ path: ".env.local" });
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
