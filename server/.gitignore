@@ -1,6 +1,27 @@
+# Dependencies & Build
 node_modules/
 dist/
+build/
+out/
+.next/
+
+# pnpm specific
+.pnpm-store/
+pnpm-lock.yaml
+
+# Cache & Tooling
+.cache/
+.expo/
+coverage/
+*.min.js
+*.min.css
+*.map
 *.log
 .env
 .DS_Store
-coverage/
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
