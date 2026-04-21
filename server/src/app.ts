@@ -20,6 +20,24 @@ app.get("/", (req: Request, res: Response) => {
 // 🔐 Auth routes (mounted at /api/auth)
 app.use("/api/auth", authRoutes);
 
+const batteryLogs: any[] = [];
+
+app.post("/api/battery", (req: Request, res: Response) => {
+    const payload = req.body;
+    console.log("🔋 Battery payload received:", JSON.stringify(payload, null, 2));
+    batteryLogs.push({
+        ...payload,
+        receivedAt: new Date().toISOString(),
+    });
+    console.log(`📦 Total battery logs in memory: ${batteryLogs.length}`);
+
+    res.json({
+        success: true,
+        message: "Battery data received",
+        count: batteryLogs.length,
+    });
+});
+
 // Start server
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

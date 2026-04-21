@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:auth_app/app/routes/app_routes.dart';
 import 'package:auth_app/features/auth/services/auth_api.dart';
+import 'package:auth_app/features/battery/battery_api.dart';
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,6 +16,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoggingOut = false;
   Map<String, String>? _user;
+  Timer? _batteryTimer;
+  int? _currentBattery;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +25,17 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text('Home${_user != null ? ', ${_user!['name']}' : ''}'),
         actions: [
-          // Logout button in AppBar (optional)
+          if (_currentBattery != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Text(
+                '🔋 $_currentBattery%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           IconButton(
             icon: _isLoggingOut
                 ? const SizedBox(
@@ -37,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 👤 Display user info if loaded
             if (_user != null) ...[
               Text(
                 'Welcome, ${_user!['name']}!',
@@ -52,25 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
             ],
-
             const Text('Home', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 16),
-
-            // Navigate to About
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, AppRoutes.about),
               child: const Text('Go to About'),
             ),
             const SizedBox(height: 16),
-
-            // Navigate to Login (for testing GuestGuard)
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
               child: const Text('Go to Login'),
             ),
             const SizedBox(height: 16),
-
-            // Logout button in body
             ElevatedButton(
               onPressed: _isLoggingOut ? null : _handleLogout,
               style: ElevatedButton.styleFrom(
@@ -95,14 +103,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser(); // Load stored user data on startup
+  void dispose() {
+    _batteryTimer?.cancel();
+    super.dispose();
   }
 
-  // 🚪 Handle logout with loading state + error handling
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+    _startBatterySync();
+  }
+
   Future<void> _handleLogout() async {
-    // Optional: Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -121,19 +134,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // User cancelled or widget unmounted
     if (confirmed != true || !mounted) return;
 
-    // Show loading state
     setState(() => _isLoggingOut = true);
 
     try {
-      // 🔥 Await the logout call
       await AuthApi.logout();
 
       if (!mounted) return;
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Logged out successfully'),
@@ -142,19 +151,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
-      // 🔥 Clear navigation stack + go to login
-      // (prevents back-button returning to protected pages)
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.login,
-          (route) => false, // Remove ALL previous routes
+          (route) => false,
         );
       }
     } catch (e) {
       if (!mounted) return;
 
-      // Show actual error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Logout failed: $e'),
@@ -162,18 +168,31 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } finally {
-      // Always hide loading state if still mounted
       if (mounted) {
         setState(() => _isLoggingOut = false);
       }
     }
   }
 
-  // 👤 Load user data from secure storage
   Future<void> _loadUser() async {
     final user = await AuthApi.getUser();
     if (mounted) {
       setState(() => _user = user);
     }
+  }
+
+  Future<void> _sendBatteryNow() async {
+    final success = await BatteryApi.sendBatteryToBackend();
+    if (success && mounted) {
+      final level = await Battery().batteryLevel;
+      setState(() => _currentBattery = level);
+    }
+  }
+
+  void _startBatterySync() {
+    _sendBatteryNow();
+    _batteryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _sendBatteryNow();
+    });
   }
 }
