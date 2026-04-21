@@ -6,7 +6,7 @@ import authRoutes from "./routes/auth";
 dotenv.config();
 
 const app: Express = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
 // Middleware
 app.use(express.json());
@@ -21,7 +21,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 

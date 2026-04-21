@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../services/auth_api.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -94,12 +95,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     border: const OutlineInputBorder(),
+                    helperText: 'Minimum 8 characters', // 👈 Helpful hint
+                    helperStyle: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password is required';
                     }
-                    if (value.length < 6) return 'Min 6 characters';
+                    if (value.length < 9) return 'Min 8 characters';
                     return null;
                   },
                 ),
@@ -182,21 +188,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      // TODO: Replace with real API call to Express /register
-      Future.delayed(const Duration(seconds: 1), () {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.login,
-          (route) => false, // Clear history
+      try {
+        final result = await AuthApi.register(
+          name: _nameCtrl.text.trim(),
+          email: _emailCtrl.text.trim(),
+          password: _passCtrl.text,
         );
-      });
+
+        if (!mounted) return;
+
+        if (result['success']) {
+          // Show success, then go to login or home
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created successfully!')),
+          );
+
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.home,
+              (route) => false,
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Registration failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Network error. Check your connection.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 }

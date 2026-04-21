@@ -1,6 +1,8 @@
 import 'package:auth_app/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 
+import '../services/auth_api.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -117,26 +119,57 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // 🗑️ Always dispose controllers to prevent memory leaks
     _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+  void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      // TODO: Replace with actual api call later
-      Future.delayed(const Duration(seconds: 1), () {
-        if (!mounted) return; // ✅ Safety: widget might be gone
-        setState(() => _isLoading = false);
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.home,
-          (route) => false, // Clear auth history
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await AuthApi.login(
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text,
+      );
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: Colors.green,
+          ),
         );
-      });
+
+        if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.home,
+            (route) => false,
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? 'Login failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Network error. Check your connection.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
