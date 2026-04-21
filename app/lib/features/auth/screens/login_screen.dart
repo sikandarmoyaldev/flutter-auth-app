@@ -97,15 +97,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const Text("Don't have an account?"),
                     TextButton(
-                      onPressed: () {}, // TODO: Forgot password
-                      child: const Text('Forgot Password?'),
-                    ),
-                    TextButton(
-                      onPressed: () {}, // TODO: Forgot password
-                      child: const Text('Create Account'),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, AppRoutes.register),
+                      child: const Text('Register'),
                     ),
                   ],
                 ),
