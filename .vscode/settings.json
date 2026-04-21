@@ -12,6 +12,15 @@
     "**/.git": true,
     "**/coverage": true,
     "**/dist": true,
+    "**/.idea": true,
+    "**/.dart_tool": true,
+    "**/build": true,
+    "**/linux": true,
+    "**/web": true,
+    "**/windows": true,
+    "**/macos": true,
+    "**/test": true,
+    "**/ios": true,
     "**/.cache": true
   },
   "files.watcherExclude": {
@@ -20,5 +29,13 @@
     "**/.git/**": true,
     "**/coverage/**": true
   },
-  "eslint.validate": ["typescript", "javascript"]
+  "eslint.validate": ["typescript", "javascript"],
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true
+  },
+  "editor.formatOnSave": true
 }
