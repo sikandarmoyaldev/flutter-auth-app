@@ -98,6 +98,41 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                 ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  child: Text(
+                    "Home",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.about),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  child: Text(
+                    "About",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -107,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.pushNamed(context, AppRoutes.register),
                       child: const Text('Register'),
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ],

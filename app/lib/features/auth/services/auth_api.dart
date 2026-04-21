@@ -15,6 +15,35 @@ class AuthApi {
   static const _keyUserName = 'user:name';
   static const _keyUserEmail = 'user:email';
 
+  static Future<Map<String, String>?> getUser() async {
+    final values = await Future.wait([
+      _storage.read(key: _keyUserId),
+      _storage.read(key: _keyUserName),
+      _storage.read(key: _keyUserEmail),
+    ]);
+
+    final userId = values[0];
+    final userName = values[1];
+    final userEmail = values[2];
+
+    if (userId == null || userName == null || userEmail == null) {
+      debugPrint(
+        'getUser: incomplete data — userId: $userId, name: $userName, email: $userEmail',
+      );
+      return null;
+    }
+
+    debugPrint('getUser: retrieved user — $userName ($userEmail)');
+
+    // Return typed map for safe access: user?['name']
+    return {'id': userId, 'name': userName, 'email': userEmail};
+  }
+
+  static Future<bool> isAuthenticated() async {
+    final accessToken = await _storage.read(key: _keyAccessToken);
+    return accessToken != null && accessToken.isNotEmpty;
+  }
+
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -59,6 +88,20 @@ class AuthApi {
       debugPrint('Login error: $e');
       return {'success': false, 'error': 'Network error: $e'};
     }
+  }
+
+  static Future<void> logout() async {
+    debugPrint('Logging out: clearing auth data...');
+
+    await Future.wait([
+      _storage.delete(key: _keyAccessToken),
+      _storage.delete(key: _keyRefreshToken),
+      _storage.delete(key: _keyUserId),
+      _storage.delete(key: _keyUserName),
+      _storage.delete(key: _keyUserEmail),
+    ]);
+
+    debugPrint('Auth data cleared successfully');
   }
 
   static Future<Map<String, dynamic>> register({
