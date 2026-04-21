@@ -18,6 +18,11 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => Navigator.pushNamed(context, AppRoutes.about),
               child: Text('Redirect About'),
             ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+              child: Text('Redirect Login'),
+            ),
           ],
         ),
       ),

@@ -1,10 +1,19 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthApi {
   static const String _baseUrl = 'http://127.0.0.1:3000/api/auth';
+
+  static const _storage = FlutterSecureStorage();
+
+  static const _keyAccessToken = 'auth:access_token';
+  static const _keyRefreshToken = 'auth:refresh_token';
+  static const _keyUserId = 'user:id';
+  static const _keyUserName = 'user:name';
+  static const _keyUserEmail = 'user:email';
 
   static Future<Map<String, dynamic>> login({
     required String email,
@@ -29,6 +38,20 @@ class AuthApi {
 
       if (result['success']) {
         debugPrint('${result['token']}');
+
+        final data = result['data'];
+
+        final accessToken = data['tokens']['accessToken'] as String;
+        final refreshToken = data['tokens']['refreshToken'] as String;
+        final user = data['user'] as Map<String, dynamic>;
+
+        await _saveAuthData(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          userId: user['id'] as String,
+          userName: user['name'] as String,
+          userEmail: user['email'] as String,
+        );
       }
 
       return result;
@@ -61,7 +84,25 @@ class AuthApi {
       debugPrint('Response status: ${response.statusCode}');
       debugPrint(' Response body: ${response.body}');
 
-      return _handleResponse(response);
+      final result = _handleResponse(response);
+
+      if (result['success']) {
+        final data = result['data'];
+        final accessToken = data['tokens']['accessToken'] as String;
+        final refreshToken = data['tokens']['refreshToken'] as String;
+        final user = data['user'] as Map<String, dynamic>;
+
+        await _saveAuthData(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          userId: user['id'] as String,
+          userName: user['name'] as String,
+          userEmail: user['email'] as String,
+        );
+        debugPrint('Auth data saved securely');
+      }
+
+      return result;
     } catch (e) {
       debugPrint('Register error: $e');
       return {'success': false, 'error': 'Network error: $e'};
@@ -78,5 +119,21 @@ class AuthApi {
     // Extract backend error message
     final message = data['error'] ?? 'Something went wrong';
     return {'success': false, 'error': message, 'details': data['details']};
+  }
+
+  static Future<void> _saveAuthData({
+    required String accessToken,
+    required String refreshToken,
+    required String userId,
+    required String userName,
+    required String userEmail,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _keyAccessToken, value: accessToken),
+      _storage.write(key: _keyRefreshToken, value: refreshToken),
+      _storage.write(key: _keyUserId, value: userId),
+      _storage.write(key: _keyUserName, value: userName),
+      _storage.write(key: _keyUserEmail, value: userEmail),
+    ]);
   }
 }
