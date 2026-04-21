@@ -1,0 +1,11 @@
+import 'package:auth_app/app/routes/app_routes.dart';
+import 'package:auth_app/screens/about_screen.dart';
+import 'package:auth_app/screens/home_screen.dart';
+import 'package:flutter/material.dart';
+
+class AppRouter {
+  static final Map<String, WidgetBuilder> routes = {
+    AppRoutes.home: (context) => const HomeScreen(),
+    AppRoutes.about: (context) => const AboutScreen(),
+  };
+}
